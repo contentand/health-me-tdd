@@ -16,6 +16,12 @@ public class HealthService {
 
     private Map<LocalDate, List<Record>> records = new HashMap<>();
 
+    public void move(String container, double quantity, String moveStart, String moveEnd) {
+    }
+
+    public double moved(String container, LocalDateTime parse) {
+        return 0;
+    }
 
 
     private static class Record {

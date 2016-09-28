@@ -4,9 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
-import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 public class HealthServiceTest {
@@ -97,5 +95,21 @@ public class HealthServiceTest {
         double precision = 0.00001;
         double actualBreakfastEaten = healthService.eaten(meal, container, LocalDateTime.parse(currentDateTime));
         assertEquals(lunchQuantityEaten, actualBreakfastEaten, precision);
+    }
+
+    @Test
+    public void canCountSteps() throws Exception {
+        //given
+        String moveStart = "2016-09-28T09:30:00";
+        String moveEnd = "2016-09-28T11:30:00";
+        String container = "steps";
+        double quantity = 1234;
+        String currentDateTime = "2016-09-28T23:59:59";
+        //when
+        healthService.move(container, quantity, moveStart, moveEnd);
+        //then
+        double precision = 0.00001;
+        double actualMoved = healthService.moved(container, LocalDateTime.parse(currentDateTime));
+        assertEquals(quantity, actualMoved, precision);
     }
 }
