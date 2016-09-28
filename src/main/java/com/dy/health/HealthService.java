@@ -16,13 +16,6 @@ public class HealthService {
 
     private Map<LocalDate, List<Record>> records = new HashMap<>();
 
-    public void move(String container, double quantity, String moveStart, String moveEnd) {
-    }
-
-    public double moved(String container, LocalDateTime parse) {
-        return 0;
-    }
-
 
     private static class Record {
         String type; // drink
@@ -30,13 +23,19 @@ public class HealthService {
         String container;
         double quantity;
         LocalDateTime dateTime; // should it just be LocalTime?
+        Duration duration;
 
-        public Record(String type, String name, String container, double quantity, LocalDateTime dateTime) {
+        public Record(String type, String name, String container, double quantity, LocalDateTime dateTime, Duration duration) {
             this.type = type;
             this.name = name;
             this.container = container;
             this.quantity = quantity;
             this.dateTime = dateTime;
+            this.duration = duration;
+        }
+
+        public Record(String type, String name, String container, double quantity, LocalDateTime dateTime) {
+            this(type, name, container, quantity, dateTime, Duration.ZERO);
         }
 
         public Record(Record record) {
@@ -59,12 +58,6 @@ public class HealthService {
         }
     }
 
-    public void eat(String foodName, String container, double quantity, LocalDateTime dateTime) {
-        LocalDate date = dateTime.toLocalDate();
-        records.putIfAbsent(date, new ArrayList<>());
-        records.get(date).add(new Record("food", foodName, container, quantity, dateTime));
-    }
-
     public void drink(String drinkName, String container, double quantity, LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
         records.putIfAbsent(date, new ArrayList<>());
@@ -76,10 +69,33 @@ public class HealthService {
         return calculate("drink", container, "all", date);
     }
 
+    public void eat(String foodName, String container, double quantity, LocalDateTime dateTime) {
+        LocalDate date = dateTime.toLocalDate();
+        records.putIfAbsent(date, new ArrayList<>());
+        records.get(date).add(new Record("food", foodName, container, quantity, dateTime));
+    }
+
     public double eaten(String meal, String container, LocalDateTime requestDateTime) {
         LocalDate date = requestDateTime.toLocalDate();
         return calculate("food", container, meal, date);
     }
+
+    public double moved(String container, LocalDateTime requestDateTime) {
+        LocalDate date = requestDateTime.toLocalDate();
+        return calculate("move", container, "all", date);
+    }
+
+    public void move(String container, double quantity, LocalDateTime moveStart, LocalDateTime moveEnd) {
+        if (moveStart.toLocalDate().isEqual(moveEnd.toLocalDate())) {
+            LocalDate date = moveStart.toLocalDate();
+            Duration duration = Duration.between(moveStart, moveEnd);
+            records.putIfAbsent(date, new ArrayList<>());
+            records.get(date).add(new Record("move", null, container, quantity, moveStart, duration));
+        } else {
+            throw new IllegalStateException(); // to be implemented once feature is requested
+        }
+    }
+
 
     private double calculate(String type, String container, String timeRange, LocalDate date) {
         Stream<Record> recordsForDate = records.get(date).stream();

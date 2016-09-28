@@ -106,7 +106,7 @@ public class HealthServiceTest {
         double quantity = 1234;
         String currentDateTime = "2016-09-28T23:59:59";
         //when
-        healthService.move(container, quantity, moveStart, moveEnd);
+        healthService.move(container, quantity, LocalDateTime.parse(moveStart),LocalDateTime.parse(moveEnd));
         //then
         double precision = 0.00001;
         double actualMoved = healthService.moved(container, LocalDateTime.parse(currentDateTime));
