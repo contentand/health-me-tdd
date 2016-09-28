@@ -102,6 +102,10 @@ public class HealthService {
             LocalTime breakfastStart = LocalTime.parse("02:00");
             LocalTime breakfastEnd = LocalTime.parse("12:00");
             return localTime.isAfter(breakfastStart) && localTime.isBefore(breakfastEnd);
+        } else if (timeRange.equals("lunch")) {
+            LocalTime lunchStart = LocalTime.parse("12:00");
+            LocalTime lunchEnd = LocalTime.parse("17:00");
+            return localTime.isAfter(lunchStart) && localTime.isBefore(lunchEnd);
         }
         return false;
     }

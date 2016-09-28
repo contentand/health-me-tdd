@@ -93,7 +93,7 @@ public class HealthServiceTest {
         healthService.eat(food, container, quantityEaten, LocalDateTime.parse(dinnerDateTime));
         healthService.eat(food, container, quantityEaten, LocalDateTime.parse(supperDateTime));
         //then
-        String meal = "breakfast";
+        String meal = "lunch";
         double precision = 0.00001;
         double actualBreakfastEaten = healthService.eaten(meal, container, LocalDateTime.parse(currentDateTime));
         assertEquals(lunchQuantityEaten, actualBreakfastEaten, precision);
