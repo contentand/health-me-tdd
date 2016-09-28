@@ -4,10 +4,8 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HealthService {
@@ -16,8 +14,7 @@ public class HealthService {
     private double MIN_STEPS_PER_DAY = 2000;
     private double MIN_HOURS_OF_MOVEMENT_PER_DAY = 2;
     private double MIN_KILOCALS_PER_DAY = 1300;
-    private double MIN_LITERS_PER_DAY = 2000;
-
+    private double MIN_LITERS_PER_DAY = 2;
 
     private static class Record {
         String type; // drink
@@ -60,7 +57,52 @@ public class HealthService {
         }
     }
 
-    public DayReport getDayReport(LocalDateTime currentDate) {
+    public PeriodReport getPeriodReport(LocalDate startDate, LocalDate endDate) {
+        List<Double> steps = new ArrayList<>();
+        List<Double> hours = new ArrayList<>();
+        List<Double> kiloCals = new ArrayList<>();
+        List<Double> liters = new ArrayList<>();
+        LocalDate cursor = startDate;
+        // Inject
+        while (cursor.isBefore(endDate) || cursor.isEqual(endDate)) {
+            List<Record> list = records.get(cursor);
+            if (list == null) {
+                steps.add(0D);
+                hours.add(0D);
+                kiloCals.add(0D);
+                liters.add(0D);
+            } else {
+                steps.add(moved("step", cursor));
+                hours.add(moved("hour", cursor));
+                kiloCals.add(eaten("all", "kilocal", cursor));
+                liters.add(drunk("liter", cursor));
+            }
+            cursor = cursor.plusDays(1);
+        }
+        // Create report
+        return new PeriodReport.PeriodReportBuilder()
+                .setStartDate(startDate)
+                .setEndDate(endDate)
+                .setStepsCompletionMedian(median(steps))
+                .setHoursToMoveCompletionMedian(median(hours))
+                .setKiloCalsCompletionMedian(median(kiloCals))
+                .setLiquidLitersCompletionMedian(median(liters))
+                .build();
+    }
+
+    private double median(List<Double> list) {
+        int size = list.size();
+        if (size == 0) return 0;
+        if (size == 1) return list.get(0);
+        list.sort(Comparator.naturalOrder());
+        if (size % 2 == 1) {
+            return list.get(size / 2 + 1);
+        } else {
+            return (list.get(size / 2 + 1) + list.get(size / 2 - 1)) / 2.0;
+        }
+    }
+
+    public DayReport getDayReport(LocalDate currentDate) {
         ReportLeft reportLeft = reportLeft(currentDate);
         double stepsCompletionRate = 1.0 - (reportLeft.getStepsLeft() / MIN_STEPS_PER_DAY);
         double hoursToMoveCompletionRate = 1.0 - (reportLeft.getHoursToMoveLeft() / MIN_HOURS_OF_MOVEMENT_PER_DAY);
@@ -73,14 +115,13 @@ public class HealthService {
     }
 
 
-    public ReportLeft reportLeft(LocalDateTime currentDate) {
-        LocalDate date = currentDate.toLocalDate();
-        if (!records.containsKey(date)) return new ReportLeft(); // empty report
-        List<Record> recordsForDay = records.get(date);
-        double liquidLitersLeft = MIN_LITERS_PER_DAY - calculate("drink", "liter", "all", date);
-        double kiloCalsLeft = MIN_KILOCALS_PER_DAY - calculate("food", "kilocal", "all", date);
-        double stepsLeft = MIN_STEPS_PER_DAY - calculate("move", "step", "all", date);
-        double hoursToMoveLeft = MIN_HOURS_OF_MOVEMENT_PER_DAY - calculate("move", "hour", "all", date);
+    public ReportLeft reportLeft(LocalDate currentDate) {
+        if (!records.containsKey(currentDate)) return new ReportLeft(); // empty report
+        List<Record> recordsForDay = records.get(currentDate);
+        double liquidLitersLeft = MIN_LITERS_PER_DAY - calculate("drink", "liter", "all", currentDate);
+        double kiloCalsLeft = MIN_KILOCALS_PER_DAY - calculate("food", "kilocal", "all", currentDate);
+        double stepsLeft = MIN_STEPS_PER_DAY - calculate("move", "step", "all", currentDate);
+        double hoursToMoveLeft = MIN_HOURS_OF_MOVEMENT_PER_DAY - calculate("move", "hour", "all", currentDate);
         liquidLitersLeft = (liquidLitersLeft < 0) ? 0 : liquidLitersLeft;
         kiloCalsLeft = (kiloCalsLeft < 0) ? 0 : kiloCalsLeft;
         stepsLeft = (stepsLeft < 0) ? 0 : stepsLeft;
@@ -94,9 +135,8 @@ public class HealthService {
         records.get(date).add(new Record("drink", drinkName, container, quantity, dateTime));
     }
 
-    public double drunk(String container, LocalDateTime requestDateTime) {
-        LocalDate date = requestDateTime.toLocalDate();
-        return calculate("drink", container, "all", date);
+    public double drunk(String container, LocalDate requestDate) {
+        return calculate("drink", container, "all", requestDate);
     }
 
     public void eat(String foodName, String container, double quantity, LocalDateTime dateTime) {
@@ -105,14 +145,12 @@ public class HealthService {
         records.get(date).add(new Record("food", foodName, container, quantity, dateTime));
     }
 
-    public double eaten(String meal, String container, LocalDateTime requestDateTime) {
-        LocalDate date = requestDateTime.toLocalDate();
-        return calculate("food", container, meal, date);
+    public double eaten(String meal, String container, LocalDate requestDate) {
+        return calculate("food", container, meal, requestDate);
     }
 
-    public double moved(String container, LocalDateTime requestDateTime) {
-        LocalDate date = requestDateTime.toLocalDate();
-        return calculate("move", container, "all", date);
+    public double moved(String container, LocalDate requestDate) {
+        return calculate("move", container, "all", requestDate);
     }
 
     public void move(String container, double quantity, LocalDateTime moveStart, LocalDateTime moveEnd) {
@@ -148,7 +186,7 @@ public class HealthService {
 
     private double getTransformedQuantity(Record record, String targetContainer) {
         if (targetContainer.equals("liter") && record.container.equals("glass")) {
-            return record.quantity * 250;
+            return record.quantity * 0.25;
         } else if (targetContainer.equals("hour") && record.type.equals("move")) {
             return record.duration.toMinutes() / 60.0;
         } else {
