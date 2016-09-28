@@ -18,6 +18,7 @@ public class HealthService {
     private double MIN_KILOCALS_PER_DAY = 1300;
     private double MIN_LITERS_PER_DAY = 2000;
 
+
     private static class Record {
         String type; // drink
         String name;
@@ -59,9 +60,21 @@ public class HealthService {
         }
     }
 
+    public DayReport getDayReport(LocalDateTime currentDate) {
+        ReportLeft reportLeft = reportLeft(currentDate);
+        double stepsCompletionRate = 1.0 - (reportLeft.getStepsLeft() / MIN_STEPS_PER_DAY);
+        double hoursToMoveCompletionRate = 1.0 - (reportLeft.getHoursToMoveLeft() / MIN_HOURS_OF_MOVEMENT_PER_DAY);
+        double kiloCalsCompletionRate = 1.0 - (reportLeft.getKiloCalsLeft() / MIN_KILOCALS_PER_DAY);
+        double liquidLitersCompletionRate = 1.0 - (reportLeft.getLiquidLitersLeft() / MIN_LITERS_PER_DAY);
+        return new DayReport(stepsCompletionRate,
+                hoursToMoveCompletionRate,
+                kiloCalsCompletionRate,
+                liquidLitersCompletionRate);
+    }
 
-    public ReportLeft reportLeft(LocalDateTime currentDateTime) {
-        LocalDate date = currentDateTime.toLocalDate();
+
+    public ReportLeft reportLeft(LocalDateTime currentDate) {
+        LocalDate date = currentDate.toLocalDate();
         if (!records.containsKey(date)) return new ReportLeft(); // empty report
         List<Record> recordsForDay = records.get(date);
         double liquidLitersLeft = MIN_LITERS_PER_DAY - calculate("drink", "liter", "all", date);

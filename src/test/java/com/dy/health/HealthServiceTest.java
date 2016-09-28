@@ -142,4 +142,34 @@ public class HealthServiceTest {
         assertEquals(0, reportLeft.getKiloCalsLeft(), precision); //1300
         assertEquals(0, reportLeft.getLiquidLitersLeft(), precision); // 2000
     }
+
+    @Test
+    public void canReportDayStatistics() throws Exception {
+        // given
+        String currentDateTime = "2016-09-28T23:59:59";
+        // when
+        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-28T08:14:00"));
+        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-28T08:30:00"));
+        healthService.move("step", 300,
+                LocalDateTime.parse("2016-09-28T09:30:00"),
+                LocalDateTime.parse("2016-09-28T10:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T10:14:00"));
+        healthService.move("step", 1000,
+                LocalDateTime.parse("2016-09-28T11:30:00"),
+                LocalDateTime.parse("2016-09-28T12:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T13:14:00"));
+        healthService.move("step", 500,
+                LocalDateTime.parse("2016-09-28T13:30:00"),
+                LocalDateTime.parse("2016-09-28T14:00:00"));
+        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-28T14:30:00"));
+        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-28T14:44:00"));
+        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-28T19:30:00"));
+        // then
+        double precision = 0.00001;
+        DayReport dayReport = healthService.getDayReport(LocalDateTime.parse(currentDateTime));
+        assertEquals(0.9, dayReport.getStepsCompletionRate(), precision);
+        assertEquals(0.75, dayReport.getHoursToMoveCompletionRate(), precision);
+        assertEquals(1.0, dayReport.getKiloCalsCompletionRate(), precision);
+        assertEquals(1.0, dayReport.getLiquidLitersCompletionRate(), precision);
+    }
 }
