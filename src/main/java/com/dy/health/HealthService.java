@@ -1,7 +1,5 @@
 package com.dy.health;
 
-import com.sun.org.apache.regexp.internal.RE;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +13,10 @@ import java.util.stream.Stream;
 public class HealthService {
 
     private Map<LocalDate, List<Record>> records = new HashMap<>();
-
+    private double MIN_STEPS_PER_DAY = 2000;
+    private double MIN_HOURS_OF_MOVEMENT_PER_DAY = 2;
+    private double MIN_KILOCALS_PER_DAY = 1300;
+    private double MIN_LITERS_PER_DAY = 2000;
 
     private static class Record {
         String type; // drink
@@ -56,6 +57,22 @@ public class HealthService {
                     ", dateTime=" + dateTime +
                     '}';
         }
+    }
+
+
+    public ReportLeft reportLeft(LocalDateTime currentDateTime) {
+        LocalDate date = currentDateTime.toLocalDate();
+        if (!records.containsKey(date)) return new ReportLeft(); // empty report
+        List<Record> recordsForDay = records.get(date);
+        double liquidLitersLeft = MIN_LITERS_PER_DAY - calculate("drink", "liter", "all", date);
+        double kiloCalsLeft = MIN_KILOCALS_PER_DAY - calculate("food", "kilocal", "all", date);
+        double stepsLeft = MIN_STEPS_PER_DAY - calculate("move", "step", "all", date);
+        double hoursToMoveLeft = MIN_HOURS_OF_MOVEMENT_PER_DAY - calculate("move", "hour", "all", date);
+        liquidLitersLeft = (liquidLitersLeft < 0) ? 0 : liquidLitersLeft;
+        kiloCalsLeft = (kiloCalsLeft < 0) ? 0 : kiloCalsLeft;
+        stepsLeft = (stepsLeft < 0) ? 0 : stepsLeft;
+        hoursToMoveLeft = (hoursToMoveLeft < 0) ? 0 : hoursToMoveLeft;
+        return new ReportLeft(liquidLitersLeft, kiloCalsLeft, stepsLeft, hoursToMoveLeft);
     }
 
     public void drink(String drinkName, String container, double quantity, LocalDateTime dateTime) {
@@ -109,12 +126,23 @@ public class HealthService {
                             return 0D;
                         }
                     } else {
-                        System.out.println(container + " " + record.toString());
-                        throw new IllegalStateException(); // to be improved later
+                        return getTransformedQuantity(record, container);
                     }
                 })
                 .reduce((quantity1, quantity2) -> quantity1 + quantity2)
                 .orElse(0D);
+    }
+
+    private double getTransformedQuantity(Record record, String targetContainer) {
+        if (targetContainer.equals("liter") && record.container.equals("glass")) {
+            return record.quantity * 250;
+        } else if (targetContainer.equals("hour") && record.type.equals("move")) {
+            return record.duration.toMinutes() / 60.0;
+        } else {
+            throw new IllegalStateException("Unable to transform " + record +
+                    " into " + targetContainer); // to be implemented once feature is requested
+        }
+
     }
 
     private boolean isWithinTimeRange(String timeRange, LocalTime localTime) {
