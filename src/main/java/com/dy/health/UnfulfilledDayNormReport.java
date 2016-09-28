@@ -1,14 +1,17 @@
 package com.dy.health;
 
 public class UnfulfilledDayNormReport {
-    private double liquidLitersLeft;
-    private double kiloCalsLeft;
-    private double stepsLeft;
-    private double hoursToMoveLeft;
+    private final double liquidLitersLeft;
+    private final double kiloCalsLeft;
+    private final double stepsLeft;
+    private final double hoursToMoveLeft;
 
-    public UnfulfilledDayNormReport() {}
+    public UnfulfilledDayNormReport() {
+        this(0, 0, 0, 0);
+    }
 
-    public UnfulfilledDayNormReport(double liquidLitersLeft, double kiloCalsLeft, double stepsLeft, double hoursToMoveLeft) {
+    public UnfulfilledDayNormReport(double liquidLitersLeft, double kiloCalsLeft,
+                                    double stepsLeft, double hoursToMoveLeft) {
         this.liquidLitersLeft = liquidLitersLeft;
         this.kiloCalsLeft = kiloCalsLeft;
         this.stepsLeft = stepsLeft;
@@ -19,31 +22,15 @@ public class UnfulfilledDayNormReport {
         return liquidLitersLeft;
     }
 
-    public void setLiquidLitersLeft(double liquidLitersLeft) {
-        this.liquidLitersLeft = liquidLitersLeft;
-    }
-
     public double getKiloCalsLeft() {
         return kiloCalsLeft;
-    }
-
-    public void setKiloCalsLeft(double kiloCalsLeft) {
-        this.kiloCalsLeft = kiloCalsLeft;
     }
 
     public double getStepsLeft() {
         return stepsLeft;
     }
 
-    public void setStepsLeft(double stepsLeft) {
-        this.stepsLeft = stepsLeft;
-    }
-
     public double getHoursToMoveLeft() {
         return hoursToMoveLeft;
-    }
-
-    public void setHoursToMoveLeft(double hoursToMoveLeft) {
-        this.hoursToMoveLeft = hoursToMoveLeft;
     }
 }

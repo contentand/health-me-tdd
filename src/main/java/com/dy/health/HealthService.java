@@ -9,21 +9,23 @@ import java.util.stream.Stream;
 
 public class HealthService {
 
-    private Map<LocalDate, List<Record>> records = new HashMap<>();
-    private double MIN_STEPS_PER_DAY = 2000;
-    private double MIN_HOURS_OF_MOVEMENT_PER_DAY = 2;
-    private double MIN_KILOCALS_PER_DAY = 1300;
-    private double MIN_LITERS_PER_DAY = 2;
+    private final Map<LocalDate, List<Record>> records = new HashMap<>();
+    private final double MIN_STEPS_PER_DAY = 2000;
+    private final double MIN_HOURS_OF_MOVEMENT_PER_DAY = 2;
+    private final double MIN_KILOCALS_PER_DAY = 1300;
+    private final double MIN_LITERS_PER_DAY = 2;
 
     private static class Record {
-        String type; // drink
-        String name;
-        String container;
-        double quantity;
-        LocalDateTime dateTime; // should it just be LocalTime?
-        Duration duration;
+        final String type; // drink
+        final String name;
+        final String container;
+        final double quantity;
+        final LocalDateTime dateTime; // should it just be LocalTime?
+        final Duration duration;
 
-        public Record(String type, String name, String container, double quantity, LocalDateTime dateTime, Duration duration) {
+        public Record(String type, String name, String container,
+                      double quantity, LocalDateTime dateTime,
+                      Duration duration) {
             this.type = type;
             this.name = name;
             this.container = container;
@@ -32,7 +34,8 @@ public class HealthService {
             this.duration = duration;
         }
 
-        public Record(String type, String name, String container, double quantity, LocalDateTime dateTime) {
+        public Record(String type, String name, String container,
+                      double quantity, LocalDateTime dateTime) {
             this(type, name, container, quantity, dateTime, Duration.ZERO);
         }
 
@@ -42,6 +45,7 @@ public class HealthService {
             this.container = record.container;
             this.quantity = record.quantity;
             this.dateTime = record.dateTime;
+            this.duration = record.duration;
         }
 
         @Override

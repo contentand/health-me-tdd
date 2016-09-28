@@ -1,10 +1,10 @@
 package com.dy.health;
 
 public class DayReport {
-    private double stepsCompletionRate;
-    private double hoursToMoveCompletionRate;
-    private double kiloCalsCompletionRate;
-    private double liquidLitersCompletionRate;
+    private final double stepsCompletionRate;
+    private final double hoursToMoveCompletionRate;
+    private final double kiloCalsCompletionRate;
+    private final double liquidLitersCompletionRate;
 
     public DayReport(double stepsCompletionRate, double hoursToMoveCompletionRate,
                      double kiloCalsCompletionRate, double liquidLitersCompletionRate) {
