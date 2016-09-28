@@ -1,6 +1,7 @@
 package com.dy.health;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -154,22 +155,22 @@ public class HealthServiceTest {
         String firstDate = "2016-09-25";
         // when
         // day 1 : 3 days ago
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-26T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-26T08:30:00"));
+        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-25T08:14:00"));
+        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-25T08:30:00"));
         healthService.move("step", 300,
-                LocalDateTime.parse("2016-09-26T09:30:00"),
-                LocalDateTime.parse("2016-09-26T10:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-26T10:14:00"));
+                LocalDateTime.parse("2016-09-25T09:30:00"),
+                LocalDateTime.parse("2016-09-25T10:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T10:14:00"));
         healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-26T11:30:00"),
-                LocalDateTime.parse("2016-09-26T12:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-26T13:14:00"));
+                LocalDateTime.parse("2016-09-25T11:30:00"),
+                LocalDateTime.parse("2016-09-25T12:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T13:14:00"));
         healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-26T13:30:00"),
-                LocalDateTime.parse("2016-09-26T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-26T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-26T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-26T19:30:00"));
+                LocalDateTime.parse("2016-09-25T13:30:00"),
+                LocalDateTime.parse("2016-09-25T14:00:00"));
+        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-25T14:30:00"));
+        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-25T14:44:00"));
+        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-25T19:30:00"));
         // day 2 : 2 days ago
             // nothing happened
         // day 3 : 1 day ago
@@ -210,4 +211,5 @@ public class HealthServiceTest {
         assertEquals(1412, periodReport.getKiloCalsCompletionMedian(), precision);
         assertEquals(1.75, periodReport.getLiquidLitersCompletionMedian(), precision);
     }
+
 }
