@@ -10,10 +10,25 @@ import java.util.stream.Stream;
 public class HealthService {
 
     private final Map<LocalDate, List<Record>> records = new HashMap<>();
+    private final Map<String, TimeRange> namedTimeRanges = getNamedTimeRanges();
     private final double MIN_STEPS_PER_DAY = 2000;
     private final double MIN_HOURS_OF_MOVEMENT_PER_DAY = 2;
     private final double MIN_KILOCALS_PER_DAY = 1300;
     private final double MIN_LITERS_PER_DAY = 2;
+
+    private static class TimeRange {
+        private final LocalTime start;
+        private final LocalTime end;
+
+        TimeRange(LocalTime startExclusive, LocalTime endInclusive) {
+            this.start = startExclusive;
+            this.end = endInclusive;
+        }
+
+        public boolean isWithinTimeRange(LocalTime time) {
+            return time.isAfter(start) && (time.isBefore(end) || time.equals(end));
+        }
+    }
 
     private static class Record {
         final String type; // drink
@@ -60,6 +75,63 @@ public class HealthService {
         }
     }
 
+    private double calculate(String type, String container, String timeRange, LocalDate date) {
+        Stream<Record> recordsForDate = records.get(date).stream();
+        return recordsForDate
+                .filter(record -> record.type.equals(type))
+                .map(record -> {
+                    if (record.container.equals(container)) {
+                        if (isWithinTimeRange(timeRange, record.dateTime.toLocalTime())) {
+                            return record.quantity;
+                        } else {
+                            return 0D;
+                        }
+                    } else {
+                        return getTransformedQuantity(record, container);
+                    }
+                })
+                .reduce((quantity1, quantity2) -> quantity1 + quantity2)
+                .orElse(0D);
+    }
+
+    private double getTransformedQuantity(Record record, String targetContainer) {
+        if (targetContainer.equals("liter") && record.container.equals("glass")) {
+            return record.quantity * 0.25;
+        } else if (targetContainer.equals("hour") && record.type.equals("move")) {
+            return record.duration.toMinutes() / 60.0;
+        } else {
+            throw new IllegalStateException("Unable to transform " + record +
+                    " into " + targetContainer); // to be implemented once feature is requested
+        }
+
+    }
+
+    private boolean isWithinTimeRange(String timeRangeName, LocalTime time) {
+        TimeRange timeRange = namedTimeRanges.get(timeRangeName);
+        return timeRange != null && timeRange.isWithinTimeRange(time);
+
+    }
+
+    private Map<String, TimeRange> getNamedTimeRanges() {
+        Map<String, TimeRange> namedTimeRanges = new HashMap<>();
+        namedTimeRanges.put("all", new TimeRange(LocalTime.of(0,0), LocalTime.of(23, 59)));
+        namedTimeRanges.put("breakfast", new TimeRange(LocalTime.of(2,0), LocalTime.of(12, 0)));
+        namedTimeRanges.put("lunch", new TimeRange(LocalTime.of(12,0), LocalTime.of(17, 0)));
+        return namedTimeRanges;
+    }
+
+    private double median(List<Double> list) {
+        int size = list.size();
+        if (size == 0) return 0;
+        if (size == 1) return list.get(0);
+        list.sort(Comparator.naturalOrder());
+        if (size % 2 == 1) {
+            return list.get(size / 2);
+        } else {
+            return (list.get(size / 2) + list.get(size / 2 - 1)) / 2.0;
+        }
+    }
+
     public PeriodReport getPeriodReport(LocalDate startDate, LocalDate endDate) {
         List<Double> steps = new ArrayList<>();
         List<Double> hours = new ArrayList<>();
@@ -93,43 +165,32 @@ public class HealthService {
                 .build();
     }
 
-    private double median(List<Double> list) {
-        int size = list.size();
-        if (size == 0) return 0;
-        if (size == 1) return list.get(0);
-        list.sort(Comparator.naturalOrder());
-        if (size % 2 == 1) {
-            return list.get(size / 2);
-        } else {
-            return (list.get(size / 2) + list.get(size / 2 - 1)) / 2.0;
-        }
-    }
 
     public DayReport getDayReport(LocalDate currentDate) {
-        UnfulfilledDayNormReport unfulfilledDayNormReport = reportLeft(currentDate);
-        double stepsCompletionRate = 1.0 - (unfulfilledDayNormReport.getStepsLeft() / MIN_STEPS_PER_DAY);
-        double hoursToMoveCompletionRate = 1.0 - (unfulfilledDayNormReport.getHoursToMoveLeft() / MIN_HOURS_OF_MOVEMENT_PER_DAY);
-        double kiloCalsCompletionRate = 1.0 - (unfulfilledDayNormReport.getKiloCalsLeft() / MIN_KILOCALS_PER_DAY);
-        double liquidLitersCompletionRate = 1.0 - (unfulfilledDayNormReport.getLiquidLitersLeft() / MIN_LITERS_PER_DAY);
+        UnfulfilledDayNormReport report = getUnfulfilledDayNormReport(currentDate);
+        double stepsCompletionRate = 1.0 - (report.getStepsLeft() / MIN_STEPS_PER_DAY);
+        double hoursToMoveCompletionRate = 1.0 - (report.getHoursToMoveLeft() / MIN_HOURS_OF_MOVEMENT_PER_DAY);
+        double kilocalsCompletionRate = 1.0 - (report.getKiloCalsLeft() / MIN_KILOCALS_PER_DAY);
+        double liquidLitersCompletionRate = 1.0 - (report.getLiquidLitersLeft() / MIN_LITERS_PER_DAY);
         return new DayReport(stepsCompletionRate,
                 hoursToMoveCompletionRate,
-                kiloCalsCompletionRate,
+                kilocalsCompletionRate,
                 liquidLitersCompletionRate);
     }
 
 
-    public UnfulfilledDayNormReport reportLeft(LocalDate currentDate) {
+    public UnfulfilledDayNormReport getUnfulfilledDayNormReport(LocalDate currentDate) {
         if (!records.containsKey(currentDate)) return new UnfulfilledDayNormReport(); // empty report
         List<Record> recordsForDay = records.get(currentDate);
         double liquidLitersLeft = MIN_LITERS_PER_DAY - calculate("drink", "liter", "all", currentDate);
-        double kiloCalsLeft = MIN_KILOCALS_PER_DAY - calculate("food", "kilocal", "all", currentDate);
+        double kilocalsLeft = MIN_KILOCALS_PER_DAY - calculate("food", "kilocal", "all", currentDate);
         double stepsLeft = MIN_STEPS_PER_DAY - calculate("move", "step", "all", currentDate);
         double hoursToMoveLeft = MIN_HOURS_OF_MOVEMENT_PER_DAY - calculate("move", "hour", "all", currentDate);
         liquidLitersLeft = (liquidLitersLeft < 0) ? 0 : liquidLitersLeft;
-        kiloCalsLeft = (kiloCalsLeft < 0) ? 0 : kiloCalsLeft;
+        kilocalsLeft = (kilocalsLeft < 0) ? 0 : kilocalsLeft;
         stepsLeft = (stepsLeft < 0) ? 0 : stepsLeft;
         hoursToMoveLeft = (hoursToMoveLeft < 0) ? 0 : hoursToMoveLeft;
-        return new UnfulfilledDayNormReport(liquidLitersLeft, kiloCalsLeft, stepsLeft, hoursToMoveLeft);
+        return new UnfulfilledDayNormReport(liquidLitersLeft, kilocalsLeft, stepsLeft, hoursToMoveLeft);
     }
 
     public void drink(String drinkName, String container, double quantity, LocalDateTime dateTime) {
@@ -166,53 +227,4 @@ public class HealthService {
             throw new IllegalStateException(); // to be implemented once feature is requested
         }
     }
-
-
-    private double calculate(String type, String container, String timeRange, LocalDate date) {
-        Stream<Record> recordsForDate = records.get(date).stream();
-        return recordsForDate
-                .filter(record -> record.type.equals(type))
-                .map(record -> {
-                    if (record.container.equals(container)) {
-                        if (isWithinTimeRange(timeRange, record.dateTime.toLocalTime())) {
-                            return record.quantity;
-                        } else {
-                            return 0D;
-                        }
-                    } else {
-                        return getTransformedQuantity(record, container);
-                    }
-                })
-                .reduce((quantity1, quantity2) -> quantity1 + quantity2)
-                .orElse(0D);
-    }
-
-    private double getTransformedQuantity(Record record, String targetContainer) {
-        if (targetContainer.equals("liter") && record.container.equals("glass")) {
-            return record.quantity * 0.25;
-        } else if (targetContainer.equals("hour") && record.type.equals("move")) {
-            return record.duration.toMinutes() / 60.0;
-        } else {
-            throw new IllegalStateException("Unable to transform " + record +
-                    " into " + targetContainer); // to be implemented once feature is requested
-        }
-
-    }
-
-    private boolean isWithinTimeRange(String timeRange, LocalTime localTime) {
-        if (timeRange.equals("all")) {
-            return true;
-        } else if (timeRange.equals("breakfast")) {
-            LocalTime breakfastStart = LocalTime.parse("02:00");
-            LocalTime breakfastEnd = LocalTime.parse("12:00");
-            return localTime.isAfter(breakfastStart) && localTime.isBefore(breakfastEnd);
-        } else if (timeRange.equals("lunch")) {
-            LocalTime lunchStart = LocalTime.parse("12:00");
-            LocalTime lunchEnd = LocalTime.parse("17:00");
-            return localTime.isAfter(lunchStart) && localTime.isBefore(lunchEnd);
-        }
-        return false;
-    }
-
-
 }
