@@ -102,11 +102,11 @@ public class HealthService {
     }
 
     public DayReport getDayReport(LocalDate currentDate) {
-        ReportLeft reportLeft = reportLeft(currentDate);
-        double stepsCompletionRate = 1.0 - (reportLeft.getStepsLeft() / MIN_STEPS_PER_DAY);
-        double hoursToMoveCompletionRate = 1.0 - (reportLeft.getHoursToMoveLeft() / MIN_HOURS_OF_MOVEMENT_PER_DAY);
-        double kiloCalsCompletionRate = 1.0 - (reportLeft.getKiloCalsLeft() / MIN_KILOCALS_PER_DAY);
-        double liquidLitersCompletionRate = 1.0 - (reportLeft.getLiquidLitersLeft() / MIN_LITERS_PER_DAY);
+        UnfulfilledDayNormReport unfulfilledDayNormReport = reportLeft(currentDate);
+        double stepsCompletionRate = 1.0 - (unfulfilledDayNormReport.getStepsLeft() / MIN_STEPS_PER_DAY);
+        double hoursToMoveCompletionRate = 1.0 - (unfulfilledDayNormReport.getHoursToMoveLeft() / MIN_HOURS_OF_MOVEMENT_PER_DAY);
+        double kiloCalsCompletionRate = 1.0 - (unfulfilledDayNormReport.getKiloCalsLeft() / MIN_KILOCALS_PER_DAY);
+        double liquidLitersCompletionRate = 1.0 - (unfulfilledDayNormReport.getLiquidLitersLeft() / MIN_LITERS_PER_DAY);
         return new DayReport(stepsCompletionRate,
                 hoursToMoveCompletionRate,
                 kiloCalsCompletionRate,
@@ -114,8 +114,8 @@ public class HealthService {
     }
 
 
-    public ReportLeft reportLeft(LocalDate currentDate) {
-        if (!records.containsKey(currentDate)) return new ReportLeft(); // empty report
+    public UnfulfilledDayNormReport reportLeft(LocalDate currentDate) {
+        if (!records.containsKey(currentDate)) return new UnfulfilledDayNormReport(); // empty report
         List<Record> recordsForDay = records.get(currentDate);
         double liquidLitersLeft = MIN_LITERS_PER_DAY - calculate("drink", "liter", "all", currentDate);
         double kiloCalsLeft = MIN_KILOCALS_PER_DAY - calculate("food", "kilocal", "all", currentDate);
@@ -125,7 +125,7 @@ public class HealthService {
         kiloCalsLeft = (kiloCalsLeft < 0) ? 0 : kiloCalsLeft;
         stepsLeft = (stepsLeft < 0) ? 0 : stepsLeft;
         hoursToMoveLeft = (hoursToMoveLeft < 0) ? 0 : hoursToMoveLeft;
-        return new ReportLeft(liquidLitersLeft, kiloCalsLeft, stepsLeft, hoursToMoveLeft);
+        return new UnfulfilledDayNormReport(liquidLitersLeft, kiloCalsLeft, stepsLeft, hoursToMoveLeft);
     }
 
     public void drink(String drinkName, String container, double quantity, LocalDateTime dateTime) {

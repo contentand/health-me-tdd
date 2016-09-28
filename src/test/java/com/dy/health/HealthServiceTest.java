@@ -1,7 +1,6 @@
 package com.dy.health;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -114,11 +113,11 @@ public class HealthServiceTest {
         healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-28T14:44:00"));
         healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-28T19:30:00"));
         // then
-        ReportLeft reportLeft = healthService.reportLeft(currentDate);
-        assertEquals(200, reportLeft.getStepsLeft(), precision); // 2000
-        assertEquals(0.5, reportLeft.getHoursToMoveLeft(), precision); // 2
-        assertEquals(0, reportLeft.getKiloCalsLeft(), precision); //1300
-        assertEquals(0, reportLeft.getLiquidLitersLeft(), precision); // 2000
+        UnfulfilledDayNormReport unfulfilledDayNormReport = healthService.reportLeft(currentDate);
+        assertEquals(200, unfulfilledDayNormReport.getStepsLeft(), precision); // 2000
+        assertEquals(0.5, unfulfilledDayNormReport.getHoursToMoveLeft(), precision); // 2
+        assertEquals(0, unfulfilledDayNormReport.getKiloCalsLeft(), precision); //1300
+        assertEquals(0, unfulfilledDayNormReport.getLiquidLitersLeft(), precision); // 2000
     }
 
     @Test

@@ -1,14 +1,14 @@
 package com.dy.health;
 
-public class ReportLeft {
+public class UnfulfilledDayNormReport {
     private double liquidLitersLeft;
     private double kiloCalsLeft;
     private double stepsLeft;
     private double hoursToMoveLeft;
 
-    public ReportLeft() {}
+    public UnfulfilledDayNormReport() {}
 
-    public ReportLeft(double liquidLitersLeft, double kiloCalsLeft, double stepsLeft, double hoursToMoveLeft) {
+    public UnfulfilledDayNormReport(double liquidLitersLeft, double kiloCalsLeft, double stepsLeft, double hoursToMoveLeft) {
         this.liquidLitersLeft = liquidLitersLeft;
         this.kiloCalsLeft = kiloCalsLeft;
         this.stepsLeft = stepsLeft;
