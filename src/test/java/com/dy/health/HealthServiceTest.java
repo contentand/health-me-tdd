@@ -212,4 +212,68 @@ public class HealthServiceTest {
         assertEquals(1.75, periodReport.getLiquidLitersCompletionMedian(), precision);
     }
 
+    @Test
+    public void canReportStatisticsForFiveDayPeriod() throws Exception {
+        // given
+        String firstDate = "2016-09-24";
+        // when
+        // day 1 : 4 days ago
+            // nothing happened
+        // day 2 : 3 days ago
+        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-25T08:14:00"));
+        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-25T08:30:00"));
+        healthService.move("step", 300,
+                LocalDateTime.parse("2016-09-25T09:30:00"),
+                LocalDateTime.parse("2016-09-25T10:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T10:14:00"));
+        healthService.move("step", 1000,
+                LocalDateTime.parse("2016-09-25T11:30:00"),
+                LocalDateTime.parse("2016-09-25T12:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T13:14:00"));
+        healthService.move("step", 500,
+                LocalDateTime.parse("2016-09-25T13:30:00"),
+                LocalDateTime.parse("2016-09-25T14:00:00"));
+        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-25T14:30:00"));
+        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-25T14:44:00"));
+        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-25T19:30:00"));
+        // day 3 : 2 days ago
+        // nothing happened
+        // day 4 : 1 day ago
+        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-27T08:14:00"));
+        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-27T08:30:00"));
+        healthService.move("step", 300,
+                LocalDateTime.parse("2016-09-27T09:30:00"),
+                LocalDateTime.parse("2016-09-27T10:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-27T10:14:00"));
+        healthService.move("step", 1000,
+                LocalDateTime.parse("2016-09-27T11:30:00"),
+                LocalDateTime.parse("2016-09-27T12:00:00"));
+        healthService.move("step", 500,
+                LocalDateTime.parse("2016-09-27T13:30:00"),
+                LocalDateTime.parse("2016-09-27T14:00:00"));
+        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-27T14:30:00"));
+        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-27T14:44:00"));
+        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-27T19:30:00"));
+        // day 5 : today
+        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-28T08:14:00"));
+        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-28T08:30:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T10:14:00"));
+        healthService.move("step", 1000,
+                LocalDateTime.parse("2016-09-28T11:30:00"),
+                LocalDateTime.parse("2016-09-28T12:00:00"));
+        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T13:14:00"));
+        healthService.move("step", 500,
+                LocalDateTime.parse("2016-09-28T13:30:00"),
+                LocalDateTime.parse("2016-09-28T14:00:00"));
+        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-28T14:30:00"));
+        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-28T14:44:00"));
+        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-28T19:30:00"));
+        // then
+        PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
+                currentDate);
+        assertEquals(1500, periodReport.getStepsCompletionMedian(), precision);
+        assertEquals(1.0, periodReport.getHoursToMoveCompletionMedian(), precision);
+        assertEquals(1412, periodReport.getKiloCalsCompletionMedian(), precision);
+        assertEquals(1.5, periodReport.getLiquidLitersCompletionMedian(), precision);
+    }
 }

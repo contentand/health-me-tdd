@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HealthService {
@@ -96,9 +95,9 @@ public class HealthService {
         if (size == 1) return list.get(0);
         list.sort(Comparator.naturalOrder());
         if (size % 2 == 1) {
-            return list.get(size / 2 + 1);
+            return list.get(size / 2);
         } else {
-            return (list.get(size / 2 + 1) + list.get(size / 2 - 1)) / 2.0;
+            return (list.get(size / 2) + list.get(size / 2 - 1)) / 2.0;
         }
     }
 
