@@ -205,10 +205,10 @@ public class HealthServiceTest {
         // then
         PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
                 currentDate);
-        assertEquals(1650, periodReport.getStepsCompletionMedian(), precision);
-        assertEquals(1.25, periodReport.getHoursToMoveCompletionMedian(), precision);
-        assertEquals(1412, periodReport.getKiloCalsCompletionMedian(), precision);
-        assertEquals(1.75, periodReport.getLiquidLitersCompletionMedian(), precision);
+        assertEquals(1650, periodReport.getStepsMedian(), precision);
+        assertEquals(1.25, periodReport.getHoursMovedMedian(), precision);
+        assertEquals(1412, periodReport.getKilocalsMedian(), precision);
+        assertEquals(1.75, periodReport.getLiquidLitersMedian(), precision);
     }
 
     @Test
@@ -270,9 +270,9 @@ public class HealthServiceTest {
         // then
         PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
                 currentDate);
-        assertEquals(1500, periodReport.getStepsCompletionMedian(), precision);
-        assertEquals(1.0, periodReport.getHoursToMoveCompletionMedian(), precision);
-        assertEquals(1412, periodReport.getKiloCalsCompletionMedian(), precision);
-        assertEquals(1.5, periodReport.getLiquidLitersCompletionMedian(), precision);
+        assertEquals(1500, periodReport.getStepsMedian(), precision);
+        assertEquals(1.0, periodReport.getHoursMovedMedian(), precision);
+        assertEquals(1412, periodReport.getKilocalsMedian(), precision);
+        assertEquals(1.5, periodReport.getLiquidLitersMedian(), precision);
     }
 }

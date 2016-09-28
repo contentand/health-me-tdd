@@ -82,10 +82,10 @@ public class HealthService {
         return new PeriodReport.PeriodReportBuilder()
                 .setStartDate(startDate)
                 .setEndDate(endDate)
-                .setStepsCompletionMedian(median(steps))
-                .setHoursToMoveCompletionMedian(median(hours))
-                .setKiloCalsCompletionMedian(median(kiloCals))
-                .setLiquidLitersCompletionMedian(median(liters))
+                .setStepsMedian(median(steps))
+                .setHoursToMoveMedian(median(hours))
+                .setKilocalsMedian(median(kiloCals))
+                .setLiquidLitersMedian(median(liters))
                 .build();
     }
 

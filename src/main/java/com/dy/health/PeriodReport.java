@@ -6,33 +6,33 @@ public class PeriodReport {
     private final LocalDate startDate;
     private final LocalDate endDate;
 
-    private final double stepsCompletionMedian;
-    private final double hoursToMoveCompletionMedian;
-    private final double kiloCalsCompletionMedian;
-    private final double liquidLitersCompletionMedian;
+    private final double stepsMedian;
+    private final double hoursMovedMedian;
+    private final double kilocalsMedian;
+    private final double liquidLitersMedian;
 
     public PeriodReport(LocalDate startDate,
                         LocalDate endDate,
-                        double stepsCompletionMedian,
-                        double hoursToMoveCompletionMedian,
-                        double kiloCalsCompletionMedian,
-                        double liquidLitersCompletionMedian) {
+                        double stepsMedian,
+                        double hoursMovedMedian,
+                        double kilocalsMedian,
+                        double liquidLitersMedian) {
         this.startDate = startDate;
         this.endDate = endDate;
-        this.stepsCompletionMedian = stepsCompletionMedian;
-        this.hoursToMoveCompletionMedian = hoursToMoveCompletionMedian;
-        this.kiloCalsCompletionMedian = kiloCalsCompletionMedian;
-        this.liquidLitersCompletionMedian = liquidLitersCompletionMedian;
+        this.stepsMedian = stepsMedian;
+        this.hoursMovedMedian = hoursMovedMedian;
+        this.kilocalsMedian = kilocalsMedian;
+        this.liquidLitersMedian = liquidLitersMedian;
     }
 
     static class PeriodReportBuilder {
         private LocalDate startDate;
         private LocalDate endDate;
 
-        private Double stepsCompletionMedian;
-        private Double hoursToMoveCompletionMedian;
-        private Double kiloCalsCompletionMedian;
-        private Double liquidLitersCompletionMedian;
+        private Double stepsMedian;
+        private Double hoursToMoveMedian;
+        private Double kilocalsMedian;
+        private Double liquidLitersMedian;
 
         public PeriodReportBuilder setStartDate(LocalDate startDate) {
             this.startDate = startDate;
@@ -44,40 +44,40 @@ public class PeriodReport {
             return this;
         }
 
-        public PeriodReportBuilder setStepsCompletionMedian(Double stepsCompletionMedian) {
-            this.stepsCompletionMedian = stepsCompletionMedian;
+        public PeriodReportBuilder setStepsMedian(Double stepsMedian) {
+            this.stepsMedian = stepsMedian;
             return this;
         }
 
-        public PeriodReportBuilder setHoursToMoveCompletionMedian(Double hoursToMoveCompletionMedian) {
-            this.hoursToMoveCompletionMedian = hoursToMoveCompletionMedian;
+        public PeriodReportBuilder setHoursToMoveMedian(Double hoursToMoveMedian) {
+            this.hoursToMoveMedian = hoursToMoveMedian;
             return this;
         }
 
-        public PeriodReportBuilder setKiloCalsCompletionMedian(Double kiloCalsCompletionMedian) {
-            this.kiloCalsCompletionMedian = kiloCalsCompletionMedian;
+        public PeriodReportBuilder setKilocalsMedian(Double kilocalsMedian) {
+            this.kilocalsMedian = kilocalsMedian;
             return this;
         }
 
-        public PeriodReportBuilder setLiquidLitersCompletionMedian(Double liquidLitersCompletionMedian) {
-            this.liquidLitersCompletionMedian = liquidLitersCompletionMedian;
+        public PeriodReportBuilder setLiquidLitersMedian(Double liquidLitersMedian) {
+            this.liquidLitersMedian = liquidLitersMedian;
             return this;
         }
 
         public PeriodReport build() {
             if (startDate  == null
                     || endDate == null
-                    || stepsCompletionMedian == null
-                    || hoursToMoveCompletionMedian == null
-                    || kiloCalsCompletionMedian == null
-                    || liquidLitersCompletionMedian == null) {
+                    || stepsMedian == null
+                    || hoursToMoveMedian == null
+                    || kilocalsMedian == null
+                    || liquidLitersMedian == null) {
                 throw new NullPointerException("One of the PeriodReport properties is unset.");
             }
             return new PeriodReport(startDate, endDate,
-                    stepsCompletionMedian,
-                    hoursToMoveCompletionMedian,
-                    kiloCalsCompletionMedian,
-                    liquidLitersCompletionMedian);
+                    stepsMedian,
+                    hoursToMoveMedian,
+                    kilocalsMedian,
+                    liquidLitersMedian);
         }
     }
 
@@ -89,19 +89,19 @@ public class PeriodReport {
         return endDate;
     }
 
-    public double getStepsCompletionMedian() {
-        return stepsCompletionMedian;
+    public double getStepsMedian() {
+        return stepsMedian;
     }
 
-    public double getHoursToMoveCompletionMedian() {
-        return hoursToMoveCompletionMedian;
+    public double getHoursMovedMedian() {
+        return hoursMovedMedian;
     }
 
-    public double getKiloCalsCompletionMedian() {
-        return kiloCalsCompletionMedian;
+    public double getKilocalsMedian() {
+        return kilocalsMedian;
     }
 
-    public double getLiquidLitersCompletionMedian() {
-        return liquidLitersCompletionMedian;
+    public double getLiquidLitersMedian() {
+        return liquidLitersMedian;
     }
 }
