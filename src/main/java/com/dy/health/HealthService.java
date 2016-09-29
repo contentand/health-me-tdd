@@ -5,62 +5,50 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class HealthService {
 
     private final Map<LocalDate, List<Record>> records = new HashMap<>();
-    private final Map<String, TimeRange> namedTimeRanges = getNamedTimeRanges();
-    private final double MIN_STEPS_PER_DAY = 2000;
-    private final double MIN_HOURS_OF_MOVEMENT_PER_DAY = 2;
-    private final double MIN_KILOCALS_PER_DAY = 1300;
-    private final double MIN_LITERS_PER_DAY = 2;
+    private final Map<String, TimeRange> namedTimeRanges;
+    private final double minStepsPerDay;
+    private final double minHoursOfMovementPerDay;
+    private final double minKilocalsPerDay;
+    private final double minLitersPerDay;
 
-    private static class TimeRange {
-        private final LocalTime start;
-        private final LocalTime end;
-
-        TimeRange(LocalTime startExclusive, LocalTime endInclusive) {
-            this.start = startExclusive;
-            this.end = endInclusive;
-        }
-
-        public boolean isWithinTimeRange(LocalTime time) {
-            return time.isAfter(start) && (time.isBefore(end) || time.equals(end));
-        }
+    public HealthService(HealthServiceSetup setup) {
+        this.namedTimeRanges = setup.getNamedTimeRanges();
+        this.minStepsPerDay = setup.getMinStepsPerDay();
+        this.minHoursOfMovementPerDay = setup.getMinHoursOfMovementPerDay();
+        this.minKilocalsPerDay = setup.getMinKilocalsPerDay();
+        this.minLitersPerDay = setup.getMinLitersPerDay();
     }
 
     private static class Record {
         final String type; // drink
         final String name;
-        final String container;
+        final String measureUnit;
         final double quantity;
         final LocalDateTime dateTime; // should it just be LocalTime?
         final Duration duration;
 
-        public Record(String type, String name, String container,
+        public Record(String type, String name, String measureUnit,
                       double quantity, LocalDateTime dateTime,
                       Duration duration) {
             this.type = type;
             this.name = name;
-            this.container = container;
+            this.measureUnit = measureUnit;
             this.quantity = quantity;
             this.dateTime = dateTime;
             this.duration = duration;
         }
 
-        public Record(String type, String name, String container,
+        public Record(String type, String name, String measureUnit,
                       double quantity, LocalDateTime dateTime) {
-            this(type, name, container, quantity, dateTime, Duration.ZERO);
-        }
-
-        public Record(Record record) {
-            this.type = record.type;
-            this.name = record.name;
-            this.container = record.container;
-            this.quantity = record.quantity;
-            this.dateTime = record.dateTime;
-            this.duration = record.duration;
+            this(type, name, measureUnit, quantity, dateTime, Duration.ZERO);
         }
 
         @Override
@@ -68,56 +56,59 @@ public class HealthService {
             return "Record{" +
                     "type='" + type + '\'' +
                     ", name='" + name + '\'' +
-                    ", container='" + container + '\'' +
+                    ", measureUnit='" + measureUnit + '\'' +
                     ", quantity=" + quantity +
                     ", dateTime=" + dateTime +
                     '}';
         }
     }
 
-    private double calculate(String type, String container, String timeRange, LocalDate date) {
+    private double calculate(String type, String measureUnit, String timeRange, LocalDate date) {
         Stream<Record> recordsForDate = records.get(date).stream();
         return recordsForDate
-                .filter(record -> record.type.equals(type))
-                .map(record -> {
-                    if (record.container.equals(container)) {
-                        if (isWithinTimeRange(timeRange, record.dateTime.toLocalTime())) {
-                            return record.quantity;
-                        } else {
-                            return 0D;
-                        }
-                    } else {
-                        return getTransformedQuantity(record, container);
-                    }
-                })
-                .reduce((quantity1, quantity2) -> quantity1 + quantity2)
+                .filter(isOf(type))
+                .map(toQuantity(measureUnit, timeRange))
+                .reduce(toSum())
                 .orElse(0D);
     }
 
-    private double getTransformedQuantity(Record record, String targetContainer) {
-        if (targetContainer.equals("liter") && record.container.equals("glass")) {
+    private BinaryOperator<Double> toSum() {
+        return (a, b) -> a + b;
+    }
+
+    private Function<Record, Double> toQuantity(String measureUnit, String timeRange) {
+        return record -> {
+            if (record.measureUnit.equals(measureUnit)) {
+                if (isWithinTimeRange(timeRange, record.dateTime.toLocalTime())) {
+                    return record.quantity;
+                } else {
+                    return 0D;
+                }
+            } else {
+                return getTransformedQuantity(record, measureUnit);
+            }
+        };
+    }
+
+    private Predicate<Record> isOf(String type) {
+        return record -> record.type.equals(type);
+    }
+
+    private double getTransformedQuantity(Record record, String targetMeasureUnit) {
+        if (targetMeasureUnit.equals("liter") && record.measureUnit.equals("glass")) {
             return record.quantity * 0.25;
-        } else if (targetContainer.equals("hour") && record.type.equals("move")) {
+        } else if (targetMeasureUnit.equals("hour") && record.type.equals("move")) {
             return record.duration.toMinutes() / 60.0;
         } else {
             throw new IllegalStateException("Unable to transform " + record +
-                    " into " + targetContainer); // to be implemented once feature is requested
+                    " into " + targetMeasureUnit); // to be implemented once feature is requested
         }
-
     }
 
     private boolean isWithinTimeRange(String timeRangeName, LocalTime time) {
         TimeRange timeRange = namedTimeRanges.get(timeRangeName);
         return timeRange != null && timeRange.isWithinTimeRange(time);
 
-    }
-
-    private Map<String, TimeRange> getNamedTimeRanges() {
-        Map<String, TimeRange> namedTimeRanges = new HashMap<>();
-        namedTimeRanges.put("all", new TimeRange(LocalTime.of(0,0), LocalTime.of(23, 59)));
-        namedTimeRanges.put("breakfast", new TimeRange(LocalTime.of(2,0), LocalTime.of(12, 0)));
-        namedTimeRanges.put("lunch", new TimeRange(LocalTime.of(12,0), LocalTime.of(17, 0)));
-        return namedTimeRanges;
     }
 
     private double median(List<Double> list) {
@@ -165,27 +156,25 @@ public class HealthService {
                 .build();
     }
 
-
     public DayReport getDayReport(LocalDate currentDate) {
         UnfulfilledDayNormReport report = getUnfulfilledDayNormReport(currentDate);
-        double stepsCompletionRate = 1.0 - (report.getStepsLeft() / MIN_STEPS_PER_DAY);
-        double hoursToMoveCompletionRate = 1.0 - (report.getHoursToMoveLeft() / MIN_HOURS_OF_MOVEMENT_PER_DAY);
-        double kilocalsCompletionRate = 1.0 - (report.getKiloCalsLeft() / MIN_KILOCALS_PER_DAY);
-        double liquidLitersCompletionRate = 1.0 - (report.getLiquidLitersLeft() / MIN_LITERS_PER_DAY);
+        double stepsCompletionRate = 1.0 - (report.getStepsLeft() / minStepsPerDay);
+        double hoursToMoveCompletionRate = 1.0 - (report.getHoursToMoveLeft() / minHoursOfMovementPerDay);
+        double kilocalsCompletionRate = 1.0 - (report.getKiloCalsLeft() / minKilocalsPerDay);
+        double liquidLitersCompletionRate = 1.0 - (report.getLiquidLitersLeft() / minLitersPerDay);
         return new DayReport(stepsCompletionRate,
                 hoursToMoveCompletionRate,
                 kilocalsCompletionRate,
                 liquidLitersCompletionRate);
     }
 
-
     public UnfulfilledDayNormReport getUnfulfilledDayNormReport(LocalDate currentDate) {
         if (!records.containsKey(currentDate)) return new UnfulfilledDayNormReport(); // empty report
         List<Record> recordsForDay = records.get(currentDate);
-        double liquidLitersLeft = MIN_LITERS_PER_DAY - calculate("drink", "liter", "all", currentDate);
-        double kilocalsLeft = MIN_KILOCALS_PER_DAY - calculate("food", "kilocal", "all", currentDate);
-        double stepsLeft = MIN_STEPS_PER_DAY - calculate("move", "step", "all", currentDate);
-        double hoursToMoveLeft = MIN_HOURS_OF_MOVEMENT_PER_DAY - calculate("move", "hour", "all", currentDate);
+        double liquidLitersLeft = minLitersPerDay - calculate("drink", "liter", "all", currentDate);
+        double kilocalsLeft = minKilocalsPerDay - calculate("food", "kilocal", "all", currentDate);
+        double stepsLeft = minStepsPerDay - calculate("move", "step", "all", currentDate);
+        double hoursToMoveLeft = minHoursOfMovementPerDay - calculate("move", "hour", "all", currentDate);
         liquidLitersLeft = (liquidLitersLeft < 0) ? 0 : liquidLitersLeft;
         kilocalsLeft = (kilocalsLeft < 0) ? 0 : kilocalsLeft;
         stepsLeft = (stepsLeft < 0) ? 0 : stepsLeft;
@@ -193,36 +182,36 @@ public class HealthService {
         return new UnfulfilledDayNormReport(liquidLitersLeft, kilocalsLeft, stepsLeft, hoursToMoveLeft);
     }
 
-    public void drink(String drinkName, String container, double quantity, LocalDateTime dateTime) {
+    public void drink(String drinkName, String measureUnit, double quantity, LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
         records.putIfAbsent(date, new ArrayList<>());
-        records.get(date).add(new Record("drink", drinkName, container, quantity, dateTime));
+        records.get(date).add(new Record("drink", drinkName, measureUnit, quantity, dateTime));
     }
 
-    public double drunk(String container, LocalDate requestDate) {
-        return calculate("drink", container, "all", requestDate);
+    public double drunk(String measureUnit, LocalDate requestDate) {
+        return calculate("drink", measureUnit, "all", requestDate);
     }
 
-    public void eat(String foodName, String container, double quantity, LocalDateTime dateTime) {
+    public void eat(String foodName, String measureUnit, double quantity, LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
         records.putIfAbsent(date, new ArrayList<>());
-        records.get(date).add(new Record("food", foodName, container, quantity, dateTime));
+        records.get(date).add(new Record("food", foodName, measureUnit, quantity, dateTime));
     }
 
-    public double eaten(String meal, String container, LocalDate requestDate) {
-        return calculate("food", container, meal, requestDate);
+    public double eaten(String meal, String measureUnit, LocalDate requestDate) {
+        return calculate("food", measureUnit, meal, requestDate);
     }
 
-    public double moved(String container, LocalDate requestDate) {
-        return calculate("move", container, "all", requestDate);
+    public double moved(String measureUnit, LocalDate requestDate) {
+        return calculate("move", measureUnit, "all", requestDate);
     }
 
-    public void move(String container, double quantity, LocalDateTime moveStart, LocalDateTime moveEnd) {
+    public void move(String measureUnit, double quantity, LocalDateTime moveStart, LocalDateTime moveEnd) {
         if (moveStart.toLocalDate().isEqual(moveEnd.toLocalDate())) {
             LocalDate date = moveStart.toLocalDate();
             Duration duration = Duration.between(moveStart, moveEnd);
             records.putIfAbsent(date, new ArrayList<>());
-            records.get(date).add(new Record("move", null, container, quantity, moveStart, duration));
+            records.get(date).add(new Record("move", null, measureUnit, quantity, moveStart, duration));
         } else {
             throw new IllegalStateException(); // to be implemented once feature is requested
         }

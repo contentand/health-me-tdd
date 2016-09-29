@@ -1,22 +1,45 @@
 package com.dy.health;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
 public class HealthServiceTest {
 
+    private static HealthServiceSetup setup;
     private HealthService healthService;
     private LocalDate currentDate = LocalDate.parse("2016-09-28");
     private double precision = 0.00001;
 
+    private static Map<String, TimeRange> getNamedTimeRanges() {
+        Map<String, TimeRange> namedTimeRanges = new HashMap<>();
+        namedTimeRanges.put("all", new TimeRange(LocalTime.of(0,0), LocalTime.of(0, 0)));
+        namedTimeRanges.put("breakfast", new TimeRange(LocalTime.of(2,0), LocalTime.of(12, 0)));
+        namedTimeRanges.put("lunch", new TimeRange(LocalTime.of(12,0), LocalTime.of(17, 0)));
+        return namedTimeRanges;
+    }
+
+    @BeforeClass
+    public static void globalSetup() {
+        setup = new HealthServiceSetup()
+                .setNamedTimeRanges(getNamedTimeRanges())
+                .setMinHoursOfMovementPerDay(2)
+                .setMinStepsPerDay(2000)
+                .setMinKilocalsPerDay(1300)
+                .setMinLitersPerDay(2);
+    }
+
     @Before
     public void setUp() throws Exception {
-        this.healthService = new HealthService();
+        this.healthService = new HealthService(setup);
     }
 
     @Test
