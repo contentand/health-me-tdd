@@ -12,6 +12,15 @@ import java.util.stream.Stream;
 
 public class HealthService {
 
+    private static final String LITER = "liter";
+    private static final String GLASS = "glass";
+    private static final String MOVE = "move";
+    private static final String HOUR = "hour";
+    private static final String STEP = "step";
+    private static final String ALL = "all";
+    private static final String KILO_CALORIE = "kilocal";
+    private static final String DRINK = "drink";
+    private static final String FOOD = "food";
     private final Map<LocalDate, List<Record>> records = new HashMap<>();
     private final Map<String, TimeRange> namedTimeRanges;
     private final double minStepsPerDay;
@@ -95,9 +104,9 @@ public class HealthService {
     }
 
     private double getTransformedQuantity(Record record, String targetMeasureUnit) {
-        if (targetMeasureUnit.equals("liter") && record.measureUnit.equals("glass")) {
+        if (LITER.equals(targetMeasureUnit) && GLASS.equals(record.measureUnit)) {
             return record.quantity * 0.25;
-        } else if (targetMeasureUnit.equals("hour") && record.type.equals("move")) {
+        } else if (HOUR.equals(targetMeasureUnit) && MOVE.equals(record.type)) {
             return record.duration.toMinutes() / 60.0;
         } else {
             throw new IllegalStateException("Unable to transform " + record +
@@ -138,10 +147,10 @@ public class HealthService {
                 kiloCals.add(0D);
                 liters.add(0D);
             } else {
-                steps.add(moved("step", cursor));
-                hours.add(moved("hour", cursor));
-                kiloCals.add(eaten("all", "kilocal", cursor));
-                liters.add(drunk("liter", cursor));
+                steps.add(moved(STEP, cursor));
+                hours.add(moved(HOUR, cursor));
+                kiloCals.add(eaten(ALL, KILO_CALORIE, cursor));
+                liters.add(drunk(LITER, cursor));
             }
             cursor = cursor.plusDays(1);
         }
@@ -170,10 +179,10 @@ public class HealthService {
 
     public UnfulfilledDayNormReport getUnfulfilledDayNormReport(LocalDate currentDate) {
         if (!records.containsKey(currentDate)) return new UnfulfilledDayNormReport(); // empty report
-        double liquidLitersLeft = minLitersPerDay - calculate("drink", "liter", "all", currentDate);
-        double kilocalsLeft = minKilocalsPerDay - calculate("food", "kilocal", "all", currentDate);
-        double stepsLeft = minStepsPerDay - calculate("move", "step", "all", currentDate);
-        double hoursToMoveLeft = minHoursOfMovementPerDay - calculate("move", "hour", "all", currentDate);
+        double liquidLitersLeft = minLitersPerDay - calculate(DRINK, LITER, ALL, currentDate);
+        double kilocalsLeft = minKilocalsPerDay - calculate(FOOD, KILO_CALORIE, ALL, currentDate);
+        double stepsLeft = minStepsPerDay - calculate(MOVE, STEP, ALL, currentDate);
+        double hoursToMoveLeft = minHoursOfMovementPerDay - calculate(MOVE, HOUR, ALL, currentDate);
         liquidLitersLeft = (liquidLitersLeft < 0) ? 0 : liquidLitersLeft;
         kilocalsLeft = (kilocalsLeft < 0) ? 0 : kilocalsLeft;
         stepsLeft = (stepsLeft < 0) ? 0 : stepsLeft;
@@ -184,25 +193,25 @@ public class HealthService {
     public void drink(String drinkName, String measureUnit, double quantity, LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
         records.putIfAbsent(date, new ArrayList<>());
-        records.get(date).add(new Record("drink", drinkName, measureUnit, quantity, dateTime));
+        records.get(date).add(new Record(DRINK, drinkName, measureUnit, quantity, dateTime));
     }
 
     public double drunk(String measureUnit, LocalDate requestDate) {
-        return calculate("drink", measureUnit, "all", requestDate);
+        return calculate(DRINK, measureUnit, ALL, requestDate);
     }
 
     public void eat(String foodName, String measureUnit, double quantity, LocalDateTime dateTime) {
         LocalDate date = dateTime.toLocalDate();
         records.putIfAbsent(date, new ArrayList<>());
-        records.get(date).add(new Record("food", foodName, measureUnit, quantity, dateTime));
+        records.get(date).add(new Record(FOOD, foodName, measureUnit, quantity, dateTime));
     }
 
     public double eaten(String meal, String measureUnit, LocalDate requestDate) {
-        return calculate("food", measureUnit, meal, requestDate);
+        return calculate(FOOD, measureUnit, meal, requestDate);
     }
 
     public double moved(String measureUnit, LocalDate requestDate) {
-        return calculate("move", measureUnit, "all", requestDate);
+        return calculate(MOVE, measureUnit, ALL, requestDate);
     }
 
     public void move(String measureUnit, double quantity, LocalDateTime moveStart, LocalDateTime moveEnd) {
@@ -210,7 +219,7 @@ public class HealthService {
             LocalDate date = moveStart.toLocalDate();
             Duration duration = Duration.between(moveStart, moveEnd);
             records.putIfAbsent(date, new ArrayList<>());
-            records.get(date).add(new Record("move", null, measureUnit, quantity, moveStart, duration));
+            records.get(date).add(new Record(MOVE, null, measureUnit, quantity, moveStart, duration));
         } else {
             throw new IllegalStateException(); // to be implemented once feature is requested
         }
