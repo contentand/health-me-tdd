@@ -146,39 +146,7 @@ public class HealthServiceTest {
         // arrange
         String firstDate = "2016-09-25";
         // act
-        // day 1 : 3 days ago
-        drink(1, GLASS, WATER, "2016-09-25T08:14:00");
-        eat(204, KILO_CALORIE, SANDWICH, "2016-09-25T08:30:00");
-        move(300, STEP, "2016-09-25T09:30:00", "2016-09-25T10:00:00");
-        drink(2, GLASS, WATER, "2016-09-25T10:14:00");
-        move(1000, STEP, "2016-09-25T11:30:00", "2016-09-25T12:00:00");
-        drink(2, GLASS, WATER, "2016-09-25T13:14:00");
-        move(500, STEP, "2016-09-25T13:30:00", "2016-09-25T14:00:00");
-        eat(504, KILO_CALORIE, PIZZA, "2016-09-25T14:30:00");
-        drink(3, GLASS, WATER, "2016-09-25T14:44:00");
-        eat(704, KILO_CALORIE, PELMENI, "2016-09-25T19:30:00");
-        // day 2 : 2 days ago
-            // nothing happened
-        // day 3 : 1 day ago
-        drink(1, GLASS, WATER, "2016-09-27T08:14:00");
-        eat(204, KILO_CALORIE, SANDWICH, "2016-09-27T08:30:00");
-        move(300, STEP, "2016-09-27T09:30:00", "2016-09-27T10:00:00");
-        drink(2, GLASS, WATER, "2016-09-27T10:14:00");
-        move(1000, STEP, "2016-09-27T11:30:00", "2016-09-27T12:00:00");
-        move(500, STEP, "2016-09-27T13:30:00", "2016-09-27T14:00:00");
-        eat(504, KILO_CALORIE, PIZZA, "2016-09-27T14:30:00");
-        drink(3, GLASS, WATER, "2016-09-27T14:44:00");
-        eat(704, KILO_CALORIE, PELMENI, "2016-09-27T19:30:00");
-        // day 4 : today
-        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
-        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
-        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
-        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
-        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
-        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
-        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
-        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
-        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
+        performActivityForFourDays();
         // assert
         PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
                 currentDate);
@@ -193,9 +161,18 @@ public class HealthServiceTest {
         // arrange
         String firstDate = "2016-09-24";
         // act
-        // day 1 : 4 days ago
-            // nothing happened
-        // day 2 : 3 days ago
+        performActivityForFourDays(); // nothing happened on the fifth day.
+        // assert
+        PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
+                currentDate);
+        assertEquals(1500, periodReport.getStepsMedian(), precision);
+        assertEquals(1.0, periodReport.getHoursMovedMedian(), precision);
+        assertEquals(1412, periodReport.getKilocalsMedian(), precision);
+        assertEquals(1.5, periodReport.getLiquidLitersMedian(), precision);
+    }
+
+    private void performActivityForFourDays() {
+        // day 1
         drink(1, GLASS, WATER, "2016-09-25T08:14:00");
         eat(204, KILO_CALORIE, SANDWICH, "2016-09-25T08:30:00");
         move(300, STEP, "2016-09-25T09:30:00", "2016-09-25T10:00:00");
@@ -206,9 +183,9 @@ public class HealthServiceTest {
         eat(504, KILO_CALORIE, PIZZA, "2016-09-25T14:30:00");
         drink(3, GLASS, WATER, "2016-09-25T14:44:00");
         eat(704, KILO_CALORIE, PELMENI, "2016-09-25T19:30:00");
-        // day 3 : 2 days ago
-        // nothing happened
-        // day 4 : 1 day ago
+        // day 2
+            // nothing happened
+        // day 3
         drink(1, GLASS, WATER, "2016-09-27T08:14:00");
         eat(204, KILO_CALORIE, SANDWICH, "2016-09-27T08:30:00");
         move(300, STEP, "2016-09-27T09:30:00", "2016-09-27T10:00:00");
@@ -218,7 +195,7 @@ public class HealthServiceTest {
         eat(504, KILO_CALORIE, PIZZA, "2016-09-27T14:30:00");
         drink(3, GLASS, WATER, "2016-09-27T14:44:00");
         eat(704, KILO_CALORIE, PELMENI, "2016-09-27T19:30:00");
-        // day 5 : today
+        // day 4
         drink(1, GLASS, WATER, "2016-09-28T08:14:00");
         eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
         drink(2, GLASS, WATER, "2016-09-28T10:14:00");
@@ -228,13 +205,6 @@ public class HealthServiceTest {
         eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
         drink(3, GLASS, WATER, "2016-09-28T14:44:00");
         eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
-        // assert
-        PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
-                currentDate);
-        assertEquals(1500, periodReport.getStepsMedian(), precision);
-        assertEquals(1.0, periodReport.getHoursMovedMedian(), precision);
-        assertEquals(1412, periodReport.getKilocalsMedian(), precision);
-        assertEquals(1.5, periodReport.getLiquidLitersMedian(), precision);
     }
 
     private void move(double quantity, String measureUnit, String startTime, String endTime) {
