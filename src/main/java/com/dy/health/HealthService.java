@@ -170,7 +170,6 @@ public class HealthService {
 
     public UnfulfilledDayNormReport getUnfulfilledDayNormReport(LocalDate currentDate) {
         if (!records.containsKey(currentDate)) return new UnfulfilledDayNormReport(); // empty report
-        List<Record> recordsForDay = records.get(currentDate);
         double liquidLitersLeft = minLitersPerDay - calculate("drink", "liter", "all", currentDate);
         double kilocalsLeft = minKilocalsPerDay - calculate("food", "kilocal", "all", currentDate);
         double stepsLeft = minStepsPerDay - calculate("move", "step", "all", currentDate);
