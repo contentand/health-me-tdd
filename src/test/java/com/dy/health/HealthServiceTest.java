@@ -58,69 +58,69 @@ public class HealthServiceTest {
 
     @Test
     public void canDrinkWaterInGlasses() throws Exception {
-        // given
+        // arrange
         double quantityDrunk = 1;
-        // when
+        // act
         drink(quantityDrunk, GLASS, WATER, "2016-09-28T08:00:00");
-        // then
+        // assert
         double actualQuantityDrunk = healthService.drunk(GLASS, currentDate);
         assertEquals(quantityDrunk, actualQuantityDrunk, precision);
     }
 
     @Test
     public void canHaveBreakfast() throws Exception {
-        //given
+        //arrange
         double quantityEaten = 200;
-        //when
+        //act
         batchEat(quantityEaten, BREAKFAST_DATE_TIME, LUNCH_DATE_TIME, DINNER_DATE_TIME, SUPPER_DATE_TIME);
-        //then
+        //assert
         double actualBreakfastEaten = healthService.eaten(BREAKFAST, KILO_CALORIE, currentDate);
         assertEquals(quantityEaten, actualBreakfastEaten, precision);
     }
 
     @Test
     public void canDrinkSeveralGlassesOfWaterAtDifferentTimes() throws Exception {
-        // given
+        // arrange
         double quantityDrunk = 1;
-        // when
+        // act
         batchDrinkWater(quantityDrunk, "2016-09-28T08:00:00", "2016-09-28T10:00:00");
-        // then
+        // assert
         double actualQuantityDrunk = healthService.drunk(GLASS, currentDate);
         assertEquals(quantityDrunk * 2, actualQuantityDrunk, precision);
     }
 
     @Test
     public void canHaveLunch() throws Exception {
-        //given
+        // arrange
         double quantityEaten = 200;
         double lunchQuantityEaten = 1403;
-        //when
+        // act
         batchEat(quantityEaten, BREAKFAST_DATE_TIME, DINNER_DATE_TIME, SUPPER_DATE_TIME);
         eat(lunchQuantityEaten, KILO_CALORIE, null, LUNCH_DATE_TIME);
-        //then
+        // assert
         double actualBreakfastEaten = healthService.eaten(LUNCH, KILO_CALORIE, currentDate);
         assertEquals(lunchQuantityEaten, actualBreakfastEaten, precision);
     }
 
     @Test
     public void canCountSteps() throws Exception {
-        //given
+        // arrange
         String moveStart = "2016-09-28T09:30:00";
         String moveEnd = "2016-09-28T11:30:00";
         double quantity = 1234;
-        //when
+        // act
         move(quantity, STEP, moveStart, moveEnd);
-        //then
+        // assert
         double actualMoved = healthService.moved(STEP, currentDate);
         assertEquals(quantity, actualMoved, precision);
     }
 
     @Test
     public void canReportHowMuchIsLeftForTheDay() throws Exception {
-        // given
-        // when
+        // arrange
+        // act
         performActivitiesForOneDay();
-        // then
+        // assert
         UnfulfilledDayNormReport unfulfilledDayNormReport = healthService.getUnfulfilledDayNormReport(currentDate);
         assertEquals(200, unfulfilledDayNormReport.getStepsLeft(), precision); // 2000
         assertEquals(0.5, unfulfilledDayNormReport.getHoursToMoveLeft(), precision); // 2
@@ -130,10 +130,10 @@ public class HealthServiceTest {
 
     @Test
     public void canReportDayStatistics() throws Exception {
-        // given
-        // when
+        // arrange
+        // act
         performActivitiesForOneDay();
-        // then
+        // assert
         DayReport dayReport = healthService.getDayReport(currentDate);
         assertEquals(0.9, dayReport.getStepsCompletionRate(), precision);
         assertEquals(0.75, dayReport.getHoursToMoveCompletionRate(), precision);
@@ -143,9 +143,9 @@ public class HealthServiceTest {
 
     @Test
     public void canReportStatisticsForFourDayPeriod() throws Exception {
-        // given
+        // arrange
         String firstDate = "2016-09-25";
-        // when
+        // act
         // day 1 : 3 days ago
         drink(1, GLASS, WATER, "2016-09-25T08:14:00");
         eat(204, KILO_CALORIE, SANDWICH, "2016-09-25T08:30:00");
@@ -179,7 +179,7 @@ public class HealthServiceTest {
         eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
         drink(3, GLASS, WATER, "2016-09-28T14:44:00");
         eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
-        // then
+        // assert
         PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
                 currentDate);
         assertEquals(1650, periodReport.getStepsMedian(), precision);
@@ -190,9 +190,9 @@ public class HealthServiceTest {
 
     @Test
     public void canReportStatisticsForFiveDayPeriod() throws Exception {
-        // given
+        // arrange
         String firstDate = "2016-09-24";
-        // when
+        // act
         // day 1 : 4 days ago
             // nothing happened
         // day 2 : 3 days ago
@@ -228,7 +228,7 @@ public class HealthServiceTest {
         eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
         drink(3, GLASS, WATER, "2016-09-28T14:44:00");
         eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
-        // then
+        // assert
         PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
                 currentDate);
         assertEquals(1500, periodReport.getStepsMedian(), precision);
