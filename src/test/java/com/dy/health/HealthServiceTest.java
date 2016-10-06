@@ -14,6 +14,16 @@ import static org.junit.Assert.*;
 
 public class HealthServiceTest {
 
+    private static final String ALL = "all";
+    private static final String BREAKFAST = "breakfast";
+    private static final String LUNCH = "lunch";
+    private static final String WATER = "water";
+    private static final String GLASS = "glass";
+    private static final String KILO_CALORIE = "kilocal";
+    private static final String STEP = "step";
+    private static final String SANDWICH = "sandwich";
+    private static final String PIZZA = "pizza";
+    private static final String PELMENI = "pelmeni";
     private static HealthServiceSetup setup;
     private HealthService healthService;
     private LocalDate currentDate = LocalDate.parse("2016-09-28");
@@ -21,9 +31,9 @@ public class HealthServiceTest {
 
     private static Map<String, TimeRange> getNamedTimeRanges() {
         Map<String, TimeRange> namedTimeRanges = new HashMap<>();
-        namedTimeRanges.put("all", new TimeRange(LocalTime.of(0,0), LocalTime.of(0, 0)));
-        namedTimeRanges.put("breakfast", new TimeRange(LocalTime.of(2,0), LocalTime.of(12, 0)));
-        namedTimeRanges.put("lunch", new TimeRange(LocalTime.of(12,0), LocalTime.of(17, 0)));
+        namedTimeRanges.put(ALL, new TimeRange(LocalTime.of(0,0), LocalTime.of(0, 0)));
+        namedTimeRanges.put(BREAKFAST, new TimeRange(LocalTime.of(2,0), LocalTime.of(12, 0)));
+        namedTimeRanges.put(LUNCH, new TimeRange(LocalTime.of(12,0), LocalTime.of(17, 0)));
         return namedTimeRanges;
     }
 
@@ -47,9 +57,9 @@ public class HealthServiceTest {
         // given
         double quantityDrunk = 1;
         // when
-        healthService.drink("water", "glass", quantityDrunk, LocalDateTime.parse("2016-09-28T08:00:00"));
+        drink(quantityDrunk, GLASS, WATER, "2016-09-28T08:00:00");
         // then
-        double actualQuantityDrunk = healthService.drunk("glass", currentDate);
+        double actualQuantityDrunk = healthService.drunk(GLASS, currentDate);
         assertEquals(quantityDrunk, actualQuantityDrunk, precision);
     }
 
@@ -62,12 +72,12 @@ public class HealthServiceTest {
         String dinnerDateTime = "2016-09-28T19:30:00";
         String supperDateTime = "2016-09-28T22:30:00";
         //when
-        healthService.eat(null, "kilocal", quantityEaten, LocalDateTime.parse(breakfastDateTime));
-        healthService.eat(null, "kilocal", quantityEaten, LocalDateTime.parse(lunchDateTime));
-        healthService.eat(null, "kilocal", quantityEaten, LocalDateTime.parse(dinnerDateTime));
-        healthService.eat(null, "kilocal", quantityEaten, LocalDateTime.parse(supperDateTime));
+        eat(quantityEaten, KILO_CALORIE, null, breakfastDateTime);
+        eat(quantityEaten, KILO_CALORIE, null, lunchDateTime);
+        eat(quantityEaten, KILO_CALORIE, null, dinnerDateTime);
+        eat(quantityEaten, KILO_CALORIE, null, supperDateTime);
         //then
-        double actualBreakfastEaten = healthService.eaten("breakfast", "kilocal", currentDate);
+        double actualBreakfastEaten = healthService.eaten(BREAKFAST, KILO_CALORIE, currentDate);
         assertEquals(quantityEaten, actualBreakfastEaten, precision);
     }
 
@@ -76,10 +86,10 @@ public class HealthServiceTest {
         // given
         double quantityDrunk = 1;
         // when
-        healthService.drink("water", "glass", quantityDrunk, LocalDateTime.parse("2016-09-28T08:00:00"));
-        healthService.drink("water", "glass", quantityDrunk, LocalDateTime.parse("2016-09-28T10:00:00"));
+        drink(quantityDrunk, GLASS, WATER, "2016-09-28T08:00:00");
+        drink(quantityDrunk, GLASS, WATER, "2016-09-28T10:00:00");
         // then
-        double actualQuantityDrunk = healthService.drunk("glass", currentDate);
+        double actualQuantityDrunk = healthService.drunk(GLASS, currentDate);
         assertEquals(quantityDrunk * 2, actualQuantityDrunk, precision);
     }
 
@@ -93,12 +103,12 @@ public class HealthServiceTest {
         String dinnerDateTime = "2016-09-28T19:30:00";
         String supperDateTime = "2016-09-28T22:30:00";
         //when
-        healthService.eat(null, "kilocal", quantityEaten, LocalDateTime.parse(breakfastDateTime));
-        healthService.eat(null, "kilocal", lunchQuantityEaten, LocalDateTime.parse(lunchDateTime));
-        healthService.eat(null, "kilocal", quantityEaten, LocalDateTime.parse(dinnerDateTime));
-        healthService.eat(null, "kilocal", quantityEaten, LocalDateTime.parse(supperDateTime));
+        eat(quantityEaten, KILO_CALORIE, null, breakfastDateTime);
+        eat(lunchQuantityEaten, KILO_CALORIE, null, lunchDateTime);
+        eat(quantityEaten, KILO_CALORIE, null, dinnerDateTime);
+        eat(quantityEaten, KILO_CALORIE, null, supperDateTime);
         //then
-        double actualBreakfastEaten = healthService.eaten("lunch", "kilocal", currentDate);
+        double actualBreakfastEaten = healthService.eaten(LUNCH, KILO_CALORIE, currentDate);
         assertEquals(lunchQuantityEaten, actualBreakfastEaten, precision);
     }
 
@@ -109,9 +119,9 @@ public class HealthServiceTest {
         String moveEnd = "2016-09-28T11:30:00";
         double quantity = 1234;
         //when
-        healthService.move("step", quantity, LocalDateTime.parse(moveStart), LocalDateTime.parse(moveEnd));
+        move(quantity, STEP, moveStart, moveEnd);
         //then
-        double actualMoved = healthService.moved("step", currentDate);
+        double actualMoved = healthService.moved(STEP, currentDate);
         assertEquals(quantity, actualMoved, precision);
     }
 
@@ -119,22 +129,16 @@ public class HealthServiceTest {
     public void canReportHowMuchIsLeftForTheDay() throws Exception {
         // given
         // when
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-28T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-28T08:30:00"));
-        healthService.move("step", 300,
-                LocalDateTime.parse("2016-09-28T09:30:00"),
-                LocalDateTime.parse("2016-09-28T10:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-28T11:30:00"),
-                LocalDateTime.parse("2016-09-28T12:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T13:14:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-28T13:30:00"),
-                LocalDateTime.parse("2016-09-28T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-28T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-28T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-28T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
+        move(300, STEP, "2016-09-28T09:30:00", "2016-09-28T10:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
+        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
+        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
         // then
         UnfulfilledDayNormReport unfulfilledDayNormReport = healthService.getUnfulfilledDayNormReport(currentDate);
         assertEquals(200, unfulfilledDayNormReport.getStepsLeft(), precision); // 2000
@@ -147,22 +151,16 @@ public class HealthServiceTest {
     public void canReportDayStatistics() throws Exception {
         // given
         // when
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-28T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-28T08:30:00"));
-        healthService.move("step", 300,
-                LocalDateTime.parse("2016-09-28T09:30:00"),
-                LocalDateTime.parse("2016-09-28T10:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-28T11:30:00"),
-                LocalDateTime.parse("2016-09-28T12:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T13:14:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-28T13:30:00"),
-                LocalDateTime.parse("2016-09-28T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-28T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-28T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-28T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
+        move(300, STEP, "2016-09-28T09:30:00", "2016-09-28T10:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
+        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
+        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
         // then
         DayReport dayReport = healthService.getDayReport(currentDate);
         assertEquals(0.9, dayReport.getStepsCompletionRate(), precision);
@@ -177,54 +175,38 @@ public class HealthServiceTest {
         String firstDate = "2016-09-25";
         // when
         // day 1 : 3 days ago
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-25T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-25T08:30:00"));
-        healthService.move("step", 300,
-                LocalDateTime.parse("2016-09-25T09:30:00"),
-                LocalDateTime.parse("2016-09-25T10:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-25T11:30:00"),
-                LocalDateTime.parse("2016-09-25T12:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T13:14:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-25T13:30:00"),
-                LocalDateTime.parse("2016-09-25T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-25T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-25T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-25T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-25T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-25T08:30:00");
+        move(300, STEP, "2016-09-25T09:30:00", "2016-09-25T10:00:00");
+        drink(2, GLASS, WATER, "2016-09-25T10:14:00");
+        move(1000, STEP, "2016-09-25T11:30:00", "2016-09-25T12:00:00");
+        drink(2, GLASS, WATER, "2016-09-25T13:14:00");
+        move(500, STEP, "2016-09-25T13:30:00", "2016-09-25T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-25T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-25T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-25T19:30:00");
         // day 2 : 2 days ago
             // nothing happened
         // day 3 : 1 day ago
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-27T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-27T08:30:00"));
-        healthService.move("step", 300,
-                LocalDateTime.parse("2016-09-27T09:30:00"),
-                LocalDateTime.parse("2016-09-27T10:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-27T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-27T11:30:00"),
-                LocalDateTime.parse("2016-09-27T12:00:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-27T13:30:00"),
-                LocalDateTime.parse("2016-09-27T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-27T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-27T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-27T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-27T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-27T08:30:00");
+        move(300, STEP, "2016-09-27T09:30:00", "2016-09-27T10:00:00");
+        drink(2, GLASS, WATER, "2016-09-27T10:14:00");
+        move(1000, STEP, "2016-09-27T11:30:00", "2016-09-27T12:00:00");
+        move(500, STEP, "2016-09-27T13:30:00", "2016-09-27T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-27T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-27T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-27T19:30:00");
         // day 4 : today
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-28T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-28T08:30:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-28T11:30:00"),
-                LocalDateTime.parse("2016-09-28T12:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T13:14:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-28T13:30:00"),
-                LocalDateTime.parse("2016-09-28T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-28T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-28T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-28T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
+        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
+        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
+        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
         // then
         PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
                 currentDate);
@@ -242,54 +224,38 @@ public class HealthServiceTest {
         // day 1 : 4 days ago
             // nothing happened
         // day 2 : 3 days ago
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-25T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-25T08:30:00"));
-        healthService.move("step", 300,
-                LocalDateTime.parse("2016-09-25T09:30:00"),
-                LocalDateTime.parse("2016-09-25T10:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-25T11:30:00"),
-                LocalDateTime.parse("2016-09-25T12:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-25T13:14:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-25T13:30:00"),
-                LocalDateTime.parse("2016-09-25T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-25T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-25T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-25T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-25T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-25T08:30:00");
+        move(300, STEP, "2016-09-25T09:30:00", "2016-09-25T10:00:00");
+        drink(2, GLASS, WATER, "2016-09-25T10:14:00");
+        move(1000, STEP, "2016-09-25T11:30:00", "2016-09-25T12:00:00");
+        drink(2, GLASS, WATER, "2016-09-25T13:14:00");
+        move(500, STEP, "2016-09-25T13:30:00", "2016-09-25T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-25T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-25T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-25T19:30:00");
         // day 3 : 2 days ago
         // nothing happened
         // day 4 : 1 day ago
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-27T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-27T08:30:00"));
-        healthService.move("step", 300,
-                LocalDateTime.parse("2016-09-27T09:30:00"),
-                LocalDateTime.parse("2016-09-27T10:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-27T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-27T11:30:00"),
-                LocalDateTime.parse("2016-09-27T12:00:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-27T13:30:00"),
-                LocalDateTime.parse("2016-09-27T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-27T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-27T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-27T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-27T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-27T08:30:00");
+        move(300, STEP, "2016-09-27T09:30:00", "2016-09-27T10:00:00");
+        drink(2, GLASS, WATER, "2016-09-27T10:14:00");
+        move(1000, STEP, "2016-09-27T11:30:00", "2016-09-27T12:00:00");
+        move(500, STEP, "2016-09-27T13:30:00", "2016-09-27T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-27T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-27T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-27T19:30:00");
         // day 5 : today
-        healthService.drink("water", "glass", 1, LocalDateTime.parse("2016-09-28T08:14:00"));
-        healthService.eat("sandwich", "kilocal", 204, LocalDateTime.parse("2016-09-28T08:30:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T10:14:00"));
-        healthService.move("step", 1000,
-                LocalDateTime.parse("2016-09-28T11:30:00"),
-                LocalDateTime.parse("2016-09-28T12:00:00"));
-        healthService.drink("water", "glass", 2, LocalDateTime.parse("2016-09-28T13:14:00"));
-        healthService.move("step", 500,
-                LocalDateTime.parse("2016-09-28T13:30:00"),
-                LocalDateTime.parse("2016-09-28T14:00:00"));
-        healthService.eat("pizza", "kilocal", 504, LocalDateTime.parse("2016-09-28T14:30:00"));
-        healthService.drink("water", "glass", 3, LocalDateTime.parse("2016-09-28T14:44:00"));
-        healthService.eat("pelmeni", "kilocal", 704, LocalDateTime.parse("2016-09-28T19:30:00"));
+        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
+        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
+        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
+        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
         // then
         PeriodReport periodReport = healthService.getPeriodReport(LocalDate.parse(firstDate),
                 currentDate);
@@ -297,5 +263,19 @@ public class HealthServiceTest {
         assertEquals(1.0, periodReport.getHoursMovedMedian(), precision);
         assertEquals(1412, periodReport.getKilocalsMedian(), precision);
         assertEquals(1.5, periodReport.getLiquidLitersMedian(), precision);
+    }
+
+    private void move(double quantity, String measureUnit, String startTime, String endTime) {
+        healthService.move(measureUnit, quantity,
+                LocalDateTime.parse(startTime),
+                LocalDateTime.parse(endTime));
+    }
+
+    private void eat(double quantity, String measureUnit, String food, String time) {
+        healthService.eat(food, measureUnit, quantity, LocalDateTime.parse(time));
+    }
+
+    private void drink(double quantity, String measureUnit, String drink, String time) {
+        healthService.drink(drink, measureUnit, quantity, LocalDateTime.parse(time));
     }
 }
