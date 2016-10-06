@@ -24,6 +24,10 @@ public class HealthServiceTest {
     private static final String SANDWICH = "sandwich";
     private static final String PIZZA = "pizza";
     private static final String PELMENI = "pelmeni";
+    private static final String BREAKFAST_DATE_TIME = "2016-09-28T08:30:00";
+    private static final String LUNCH_DATE_TIME = "2016-09-28T13:30:00";
+    private static final String DINNER_DATE_TIME = "2016-09-28T19:30:00";
+    private static final String SUPPER_DATE_TIME = "2016-09-28T22:30:00";
     private static HealthServiceSetup setup;
     private HealthService healthService;
     private LocalDate currentDate = LocalDate.parse("2016-09-28");
@@ -67,15 +71,8 @@ public class HealthServiceTest {
     public void canHaveBreakfast() throws Exception {
         //given
         double quantityEaten = 200;
-        String breakfastDateTime = "2016-09-28T08:30:00";
-        String lunchDateTime = "2016-09-28T13:30:00";
-        String dinnerDateTime = "2016-09-28T19:30:00";
-        String supperDateTime = "2016-09-28T22:30:00";
         //when
-        eat(quantityEaten, KILO_CALORIE, null, breakfastDateTime);
-        eat(quantityEaten, KILO_CALORIE, null, lunchDateTime);
-        eat(quantityEaten, KILO_CALORIE, null, dinnerDateTime);
-        eat(quantityEaten, KILO_CALORIE, null, supperDateTime);
+        batchEat(quantityEaten, BREAKFAST_DATE_TIME, LUNCH_DATE_TIME, DINNER_DATE_TIME, SUPPER_DATE_TIME);
         //then
         double actualBreakfastEaten = healthService.eaten(BREAKFAST, KILO_CALORIE, currentDate);
         assertEquals(quantityEaten, actualBreakfastEaten, precision);
@@ -86,8 +83,7 @@ public class HealthServiceTest {
         // given
         double quantityDrunk = 1;
         // when
-        drink(quantityDrunk, GLASS, WATER, "2016-09-28T08:00:00");
-        drink(quantityDrunk, GLASS, WATER, "2016-09-28T10:00:00");
+        batchDrinkWater(quantityDrunk, "2016-09-28T08:00:00", "2016-09-28T10:00:00");
         // then
         double actualQuantityDrunk = healthService.drunk(GLASS, currentDate);
         assertEquals(quantityDrunk * 2, actualQuantityDrunk, precision);
@@ -98,15 +94,9 @@ public class HealthServiceTest {
         //given
         double quantityEaten = 200;
         double lunchQuantityEaten = 1403;
-        String breakfastDateTime = "2016-09-28T08:30:00";
-        String lunchDateTime = "2016-09-28T13:30:00";
-        String dinnerDateTime = "2016-09-28T19:30:00";
-        String supperDateTime = "2016-09-28T22:30:00";
         //when
-        eat(quantityEaten, KILO_CALORIE, null, breakfastDateTime);
-        eat(lunchQuantityEaten, KILO_CALORIE, null, lunchDateTime);
-        eat(quantityEaten, KILO_CALORIE, null, dinnerDateTime);
-        eat(quantityEaten, KILO_CALORIE, null, supperDateTime);
+        batchEat(quantityEaten, BREAKFAST_DATE_TIME, DINNER_DATE_TIME, SUPPER_DATE_TIME);
+        eat(lunchQuantityEaten, KILO_CALORIE, null, LUNCH_DATE_TIME);
         //then
         double actualBreakfastEaten = healthService.eaten(LUNCH, KILO_CALORIE, currentDate);
         assertEquals(lunchQuantityEaten, actualBreakfastEaten, precision);
@@ -129,16 +119,7 @@ public class HealthServiceTest {
     public void canReportHowMuchIsLeftForTheDay() throws Exception {
         // given
         // when
-        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
-        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
-        move(300, STEP, "2016-09-28T09:30:00", "2016-09-28T10:00:00");
-        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
-        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
-        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
-        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
-        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
-        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
-        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
+        performActivitiesForOneDay();
         // then
         UnfulfilledDayNormReport unfulfilledDayNormReport = healthService.getUnfulfilledDayNormReport(currentDate);
         assertEquals(200, unfulfilledDayNormReport.getStepsLeft(), precision); // 2000
@@ -151,16 +132,7 @@ public class HealthServiceTest {
     public void canReportDayStatistics() throws Exception {
         // given
         // when
-        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
-        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
-        move(300, STEP, "2016-09-28T09:30:00", "2016-09-28T10:00:00");
-        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
-        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
-        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
-        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
-        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
-        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
-        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
+        performActivitiesForOneDay();
         // then
         DayReport dayReport = healthService.getDayReport(currentDate);
         assertEquals(0.9, dayReport.getStepsCompletionRate(), precision);
@@ -277,5 +249,30 @@ public class HealthServiceTest {
 
     private void drink(double quantity, String measureUnit, String drink, String time) {
         healthService.drink(drink, measureUnit, quantity, LocalDateTime.parse(time));
+    }
+
+    private void batchEat(double quantity, String ... dateTimes) {
+        for (String dateTime : dateTimes) {
+            eat(quantity, KILO_CALORIE, null, dateTime);
+        }
+    }
+
+    private void batchDrinkWater(double quantity, String ... dateTimes) {
+        for (String dateTime : dateTimes) {
+            drink(quantity, GLASS, WATER, dateTime);
+        }
+    }
+
+    private void performActivitiesForOneDay() {
+        drink(1, GLASS, WATER, "2016-09-28T08:14:00");
+        eat(204, KILO_CALORIE, SANDWICH, "2016-09-28T08:30:00");
+        move(300, STEP, "2016-09-28T09:30:00", "2016-09-28T10:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T10:14:00");
+        move(1000, STEP, "2016-09-28T11:30:00", "2016-09-28T12:00:00");
+        drink(2, GLASS, WATER, "2016-09-28T13:14:00");
+        move(500, STEP, "2016-09-28T13:30:00", "2016-09-28T14:00:00");
+        eat(504, KILO_CALORIE, PIZZA, "2016-09-28T14:30:00");
+        drink(3, GLASS, WATER, "2016-09-28T14:44:00");
+        eat(704, KILO_CALORIE, PELMENI, "2016-09-28T19:30:00");
     }
 }
